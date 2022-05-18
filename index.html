@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>WhatsApp web - Secretaria Virtual</title>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+</head>
+
+<body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <div id="app"></div>
+
+
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script>
+    function ativarNotificacoes() {
+        var promise;
+        var calledBack = false;
+
+        if (!Notification || Notification.permission === 'denied')
+            alert('Notification had been denied');
+        else if (Notification && Notification.permission !== 'granted') {
+            function callback(result) {
+                if (!calledBack) {
+                    calledBack = true;
+
+                    if (result === 'granted') {
+                        window.location.reload();
+                    }
+                }
+            }
+
+            promise = Notification.requestPermission(callback);
+
+            if (promise && typeof promise.then === 'function')
+                promise.then(callback);
+        }
+
+    }
+</script>
+
+</html>

@@ -1,0 +1,6 @@
+{
+    "short_name":"FireStarter",
+    "name":"FireStarter",
+    "start_url":"index.html",
+    "gcm_sender_id":"705335351250"
+}
