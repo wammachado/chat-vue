@@ -207,9 +207,9 @@ import { defineAsyncComponent } from "vue";
                                     <label for="contacts" class="col-form-label">Transferir Atendimento</label>
                                     <select class="form-control" id="contacts">
                                         <option value selected>Selecione um usuário</option>
-                                        <option v-for="slug in slugs" :key="slug.aten_id"
-                                            :value="[slug.aten_id, slug.aten_ramal]">{{ slug.clie_id }} -
-                                            Ramal: {{ slug.aten_ramal }}</option>
+                                        <option v-for="contact in contacts" :key="contact.aten_id"
+                                            :value="[contact.aten_id, contact.aten_ramal]">{{ contact.clie_id }} -
+                                            Ramal: {{ contact.aten_ramal }}</option>
                                     </select>
                                 </div>
                                 <div class="form-group col-sm-6"></div>
@@ -418,7 +418,6 @@ export default {
             this.getChat();
             this.getContacts();
             this.getConversations();
-            this.readConversation();
             var audio = new Audio('/pop_1lzEdx1.mp3');
             audio.play();
         }.bind(this);
@@ -448,7 +447,6 @@ export default {
                 this.getChat();
                 this.getContacts();
                 this.getConversations();
-                this.readConversation();
 
             }
 
@@ -482,7 +480,6 @@ export default {
             this.getChat();
             this.getContacts();
             this.getConversations();
-            this.readConversation();
 
         },
         validateName() {
@@ -515,7 +512,7 @@ export default {
             this.errorName = error;
         },
         procurarF() {
-            console.log('oi');
+
             this.procurar = document.getElementById("procurar").value;
 
         },
@@ -656,6 +653,8 @@ export default {
                 .then(response => {
                     if (this.exibirLogs) {
                         console.log('Obtendo os Contatos');
+                        console.log(this.user.aten_id);
+
                     }
 
                     this.contacts = response.data;
