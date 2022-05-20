@@ -5,6 +5,7 @@ import { defineAsyncComponent } from "vue";
 </script>
 
 <template>
+
     <div>
         <!--SideChat-->
         <div class="col-sm-4 side">
@@ -25,13 +26,14 @@ import { defineAsyncComponent } from "vue";
                     </div>
                 </div>
 
+
                 <div class="row searchBox">
                     <div class="col-sm-12 searchBox-inner">
                         <div class="form-group has-feedback">
                             <select class="form-control" id="selectSlug" v-model="selectSlug"
                                 @change="onChange($event)">
                                 <option v-for="slug in slugs" :key="slug.clie_id" :value="slug.cs_descricao">
-                                    {{ slug.clie_nome_fantasia }} - Id: {{ slug.clie_id }}</option>
+                                    {{ slug.clie_nome_fantasia }} - {{ slug.clie_id }}</option>
                             </select>
                         </div>
                     </div>
@@ -63,11 +65,13 @@ import { defineAsyncComponent } from "vue";
                         <div class="col-sm-3 col-xs-3 sideBar-avatar">
                             <div class="avatar-icon">
                                 <img src="https://bootdey.com/img/Content/avatar/avatar1.png" />
+
                             </div>
                         </div>
                         <div class="col-sm-9 col-xs-9 sideBar-main">
                             <div class="row">
-                                <div class="col-sm-8 col-xs-8 sideBar-name">
+                                <div class="col-sm-8 col-xs-8 sideBar-name"
+                                    :style="SideConversation.nao_lidas > 0 ? 'font-weight: bold;' : ''">
                                     <span class="name-meta">
                                         {{
                                                 SideConversation.nome_cliente ?? (SideConversation.telefone.length == 12 ?
@@ -76,6 +80,11 @@ import { defineAsyncComponent } from "vue";
                                                         replace(/^(\d{2})(\d{2})(\d{4})(\d{4})$/, '($2)$3 - $4') :
                                                     SideConversation.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3'))
                                         }}
+
+                                        <span v-if="SideConversation.nao_lidas > 0"
+                                            style="min-width: 10px;padding: 3px 7px;font-size: 12px;font-weight: 700;line-height: 1;color: #fff;text-align: center;white-space: nowrap;vertical-align: middle;background-color: #00a884;border-radius: 10px;">
+                                            {{ SideConversation.nao_lidas }}
+                                        </span>
                                     </span>
                                     <p v-if="SideConversation.type == 'image'">
                                         <i class="fa fa-picture-o" aria-hidden="true"></i> Foto
@@ -95,6 +104,7 @@ import { defineAsyncComponent } from "vue";
                                                 SideConversation.created
                                         }}
                                     </span>
+                                    <!-- menssagens nao lida-->
                                 </div>
                             </div>
                         </div>
@@ -208,8 +218,8 @@ import { defineAsyncComponent } from "vue";
                                     <select class="form-control" id="contacts">
                                         <option value selected>Selecione um usuário</option>
                                         <option v-for="contact in contacts" :key="contact.aten_id"
-                                            :value="[contact.aten_id, contact.aten_ramal]">{{ contact.clie_id }} -
-                                            Ramal: {{ contact.aten_ramal }}</option>
+                                            :value="[contact.aten_id, contact.aten_ramal]">{{ contact.aten_nome }} -
+                                            {{ contact.aten_ramal }}</option>
                                     </select>
                                 </div>
                                 <div class="form-group col-sm-6"></div>
@@ -321,7 +331,6 @@ import { defineAsyncComponent } from "vue";
                     </div>
                     <div class="col-sm-12 previous">
                         <button type="button" class="btn btn-secondary" @click="assumeAtendimento">Sim</button>
-                        <button type="button" class="btn btn-secondary" style="margin-left: 5px;">Não</button>
                     </div>
                 </div>
             </div>
@@ -337,7 +346,7 @@ import { defineAsyncComponent } from "vue";
                 -->
                 <div class="col-sm-11 col-xs-11 reply-main">
                     <textarea class="form-control" rows="1" id="comment" :disabled="validated ? false : true"
-                        @keydown.enter.exact.prevent @keyup.enter.exact="sendMsg"
+                        v-model="msgTextError" @keydown.enter.exact.prevent @keyup.enter.exact="sendMsg"
                         @keydown.enter.shift.exact="newline"></textarea>
                 </div>
 
@@ -345,9 +354,11 @@ import { defineAsyncComponent } from "vue";
                     <i class="fa fa-send fa-2x" aria-hidden="true"></i>
                 </div>
             </div>
+
         </div>
         <!-- conversation end -->
     </div>
+
 </template>
 <style scoped>
 img,
@@ -363,7 +374,9 @@ import api from '@/services/api.js'
 import { inject } from 'vue'
 
 
+
 $(document).ready(function () {
+    $('.alert').alert();
     $(function () {
         $(".heading-compose").click(function () {
             console.log('Ready disparado');
@@ -374,6 +387,11 @@ $(document).ready(function () {
         });
 
         $(".newMessage-back").click(function () {
+            $(".side-two").css({
+                "left": "-100%"
+            });
+        });
+        $("#enviarMsg").click(function () {
             $(".side-two").css({
                 "left": "-100%"
             });
@@ -397,7 +415,8 @@ export default {
             selectSlug: null,
             messaging: null,
             messages: [],
-            validated: false
+            validated: false,
+            msgTextError: '',
 
         };
     },
@@ -518,7 +537,7 @@ export default {
         },
         async enviarMsg() {
             var numero = document.getElementById("telefoneMsg").value;
-
+            this.msgTextError = '';
             var conversation = {
                 aten_id: this.user.aten_id,
                 chatId: "55" + numero.replace(/[^a-z0-9]/gi, '') + "@c.us",
@@ -541,6 +560,7 @@ export default {
             }
             this.ConversationChat = conversation;
             this.getChat();
+
             console.log(conversation);
             this.validated = true;
             //await this.assumeAtendimento();
@@ -580,6 +600,7 @@ export default {
             this.getChat();
             this.getContacts();
             this.readConversation();
+            this.msgTextError = '';
 
             if (Conversation.chatId.indexOf('@g.us') != -1) {
                 this.validated = true;
@@ -626,7 +647,35 @@ export default {
                         var conversaDate = new Date(conversa.created);
 
                         if (conversaDate.getDate() == currentDate.getDate()) {
-                            res.data[res.data.indexOf(conversa)].created = conversaDate.getHours() + ':' + conversaDate.getMinutes();
+                            var hora = conversaDate.getHours().toString();
+                            var horaF = (hora.length == 1) ? '0' + hora : hora;
+
+
+                            var minuto = conversaDate.getMinutes().toString();
+                            var minutoF = (minuto.length == 1) ? '0' + minuto : minuto;
+
+
+                            res.data[res.data.indexOf(conversa)].created = horaF + ':' + minutoF;
+                        } else {
+                            var dia = conversaDate.getDate().toString();
+                            var diaF = (dia.length == 1) ? '0' + dia : dia;
+
+                            var mes = conversaDate.getMonth().toString();
+                            var mesF = (mes.length == 1) ? '0' + mes : mes;
+
+                            var ano = conversaDate.getFullYear().toString();
+                            var anoF = (ano.length == 1) ? '0' + ano : ano;
+
+                            var hora = conversaDate.getHours().toString();
+                            var horaF = (hora.length == 1) ? '0' + hora : hora;
+
+
+                            var minuto = conversaDate.getMinutes().toString();
+                            var minutoF = (minuto.length == 1) ? '0' + minuto : minuto;
+
+
+
+                            res.data[res.data.indexOf(conversa)].created = diaF + '/' + mesF + '/' + anoF + ' ' + horaF + ':' + minutoF;
                         }
                     });
 
@@ -687,7 +736,33 @@ export default {
                         var conversaDate = new Date(msg.created);
 
                         if (conversaDate.getDate() == currentDate.getDate()) {
-                            res.data[res.data.indexOf(msg)].created = conversaDate.getHours() + ':' + conversaDate.getMinutes();
+                            var hora = conversaDate.getHours().toString();
+                            var horaF = (hora.length == 1) ? '0' + hora : hora;
+
+                            var minuto = conversaDate.getMinutes().toString();
+                            var minutoF = (minuto.length == 1) ? '0' + minuto : minuto;
+
+
+
+                            res.data[res.data.indexOf(msg)].created = horaF + ':' + minutoF;
+                        } else {
+                            var dia = conversaDate.getDate().toString();
+                            var diaF = (dia.length == 1) ? '0' + dia : dia;
+
+                            var mes = conversaDate.getMonth().toString();
+                            var mesF = (mes.length == 1) ? '0' + mes : mes;
+
+                            var ano = conversaDate.getFullYear().toString();
+                            var anoF = (ano.length == 1) ? '0' + ano : ano;
+
+                            var hora = conversaDate.getHours().toString();
+                            var horaF = (hora.length == 1) ? '0' + hora : hora;
+
+                            var minuto = conversaDate.getMinutes().toString();
+                            var minutoF = (minuto.length == 1) ? '0' + minuto : minuto;
+
+                            res.data[res.data.indexOf(msg)].created = diaF + '/' + mesF + '/' + anoF + ' ' + horaF + ':' + minutoF;
+
                         }
                     });
                     this.messages = res.data;
@@ -864,13 +939,13 @@ export default {
                     data = res.data;
                 });
 
-
+            console.log(data.error);
             if (data.error == 0) {
                 this.validated = true;
-                this.msgText = '';
+                this.msgTextError = '';
             } else {
                 this.validated = false;
-                this.msgText = data.msg;
+                this.msgTextError = data.msg;
             }
             return data;
 
