@@ -1,6 +1,7 @@
 
 
 <template>
+  <notifications style="height: auto;" />
   <div class="container app">
     <div class="row app-one">
       <RouterView />
@@ -22,6 +23,7 @@ export default {
   },
   //composition api
   setup() {
+
     provide('messaging', firebaseMessaging)
   }
 }

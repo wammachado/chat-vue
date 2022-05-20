@@ -376,7 +376,7 @@ import { inject } from 'vue'
 
 
 $(document).ready(function () {
-    $('.alert').alert();
+
     $(function () {
         $(".heading-compose").click(function () {
             console.log('Ready disparado');
@@ -425,6 +425,7 @@ export default {
         this.$nextTick(() => this.scrollToEnd());
     },
     created() {
+
         this.slugs = this.user.clie_id;
         this.selectSlug = this.user.clie_id[0].cs_descricao;
         console.log(this.user.clie_id);
@@ -581,6 +582,12 @@ export default {
                 })
                 .catch(error => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao marcar como lida",
+                        type: 'error',
+                    });
+
                 });
         },
         async selectonversation(Conversation) {
@@ -690,6 +697,11 @@ export default {
                 })
                 .catch((error) => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao obter as conversas",
+                        type: 'error',
+                    });
                 });
         },
         logOut() {
@@ -711,6 +723,11 @@ export default {
                 })
                 .catch(error => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao obter os contatos",
+                        type: 'error',
+                    });
                 });
 
         },
@@ -769,6 +786,11 @@ export default {
                 })
                 .catch((error) => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao obter o chat",
+                        type: 'error',
+                    });
                 });
         },
 
@@ -815,6 +837,11 @@ export default {
                 })
                 .catch((error) => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao transferir atendimento",
+                        type: 'error',
+                    });
                 });
         },
         //salva o nome
@@ -845,6 +872,11 @@ export default {
                     })
                     .catch((error) => {
                         console.log(error);
+                        this.$notify({
+                            title: "Erro!!",
+                            text: "Erro ao salvar o nome",
+                            type: 'error',
+                        });
                     });
             }
         },
@@ -873,6 +905,11 @@ export default {
                 })
                 .catch((error) => {
                     console.log(error);
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao finalizar o atendimento",
+                        type: 'error',
+                    });
                 });
 
 
@@ -911,6 +948,11 @@ export default {
                     })
                     .catch((error) => {
                         console.log(error);
+                        this.$notify({
+                            title: "Erro!!",
+                            text: "Erro ao enviar mensagem",
+                            type: 'error',
+                        });
                     });
             }
         },
@@ -937,6 +979,13 @@ export default {
                 .catch((error) => {
                     console.log(error);
                     data = res.data;
+                    this.$notify({
+                        title: "Erro!!",
+                        text: "Erro ao assumir o atendimento",
+                        type: 'error',
+                    });
+
+
                 });
 
             console.log(data.error);
@@ -946,6 +995,11 @@ export default {
             } else {
                 this.validated = false;
                 this.msgTextError = data.msg;
+                this.$notify({
+                    title: "Erro!!",
+                    text: this.msgTextError,
+                    type: 'error',
+                });
             }
             return data;
 
