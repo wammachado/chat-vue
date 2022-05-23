@@ -16,8 +16,22 @@ class AuthService {
                 return response.data;
             });
     }
-    logout() {
-        localStorage.removeItem('user');
+    async logout() {
+        var user = JSON.parse(localStorage.getItem('user'));
+        console.log(user.aten_id);
+        return axios
+            .post(API_URL + 'logoff', {
+                aten_id: user.aten_id,
+            })
+            .then(response => {
+                if (!response.data.error) {
+                    localStorage.removeItem('user');
+
+                }
+                return response.data;
+            }).catch(error => {
+                console.log(error);
+            });
     }
 
 }

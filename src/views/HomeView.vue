@@ -705,9 +705,15 @@ export default {
                 });
         },
         logOut() {
-            this.$store.dispatch('auth/logout');
-
-            window.location.reload();
+            this.$store.dispatch('auth/logout').then(() => {
+                window.location.reload();
+            }).catch(() => {
+                this.$notify({
+                    title: "Erro!!",
+                    text: "Erro ao deslogar",
+                    type: 'error',
+                });
+            });
         },
         getContacts() {
             api.post('/contratos_transferencia', { aten_id: this.user.aten_id, chatId: this.ConversationChat.chatId })
