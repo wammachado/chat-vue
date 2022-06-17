@@ -166,11 +166,15 @@ import { defineAsyncComponent } from "vue";
                     </div>
                 </div>
                 <div class="col-sm-8 col-xs-7 heading-name">
-                    <label class="heading-name-meta">{{ ConversationChat.nome_cliente ??
+                    <label style="padding: 0px;" class="heading-name-meta">{{ ConversationChat.nome_cliente ??
                             (ConversationChat.telefone.length
                                 == 12 ? ConversationChat.telefone.replace(/^(\d{2})(\d{2})(\d{4})(\d{4})$/, '($2) $3-$4') :
                                 ConversationChat.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3'))
-                    }}</label>
+                    }}<br>{{ (ConversationChat.telefone.length
+        == 12 ? ConversationChat.telefone.replace(/^(\d{2})(\d{2})(\d{4})(\d{4})$/, '($2) $3-$4') :
+        ConversationChat.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3'))
+}}</label>
+
                 </div>
                 <div class="col-sm-1 col-xs-1 heading-dot pull-right" data-toggle="modal" data-target="#editModal">
                     <i class="fa fa-pencil-square-o fa-2x pull-right" aria-hidden="true"></i>
@@ -198,6 +202,7 @@ import { defineAsyncComponent } from "vue";
                                     ConversationChat.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3'))"
                                         @keydown.enter.exact.prevent @keyup.enter.exact="validateName" />
                                 </div>
+
                                 <div class="form-group" style="padding-left:15px;">
                                     <br />
                                     <div id="alert-msg-name-success" style="display:none;"
@@ -207,6 +212,22 @@ import { defineAsyncComponent } from "vue";
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="col-sm-6">
+
+                                    <label><b>Telefone :</b>
+                                        {{ ConversationChat.telefone.length == 12
+                                                ? ConversationChat.telefone.replace(/^(\d{2})(\d{2})(\d{4})(\d{4})$/,
+                                                    '($2)$3-$4')
+                                                :
+                                                ConversationChat.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
+                                        }}</label>
+                                </div>
+                            </div>
+                        </div>
+
+
 
                         <hr />
 
@@ -242,7 +263,7 @@ import { defineAsyncComponent } from "vue";
                             <div class="col-sm-12 message-main-receiver">
                                 <div class="receiver">
                                     <div class="message-text">
-                                        <img :src="messageBody.message" />
+                                        <img :src="messageBody.message" @load="onImgLoad" />
                                     </div>
                                     <span class="message-time pull-right">{{ messageBody.created }}</span>
                                 </div>
@@ -252,7 +273,7 @@ import { defineAsyncComponent } from "vue";
                             <div class="col-sm-12 message-main-sender">
                                 <div class="sender">
                                     <div class="message-text">
-                                        <img :src="messageBody.message" />
+                                        <img :src="messageBody.message" @load="onImgLoad" />
                                     </div>
                                     <span class="message-time pull-right">{{ messageBody.created }}</span>
                                 </div>
@@ -325,7 +346,7 @@ import { defineAsyncComponent } from "vue";
                         </div>
                     </span>
                 </span>
-                <div class="row message-previous alert alert-info" v-show="validated ? false : true">
+                <div class="row message-previous alert alert-info" v-show="validatedChat ? false : true">
                     <div class="col-sm-12 previous">
                         <span v-html="msgText"></span>
                     </div>
@@ -340,13 +361,16 @@ import { defineAsyncComponent } from "vue";
               <div class="col-sm-1 col-xs-1 reply-emojis">
                 <i class="fa fa-smile-o fa-2x"></i>
               </div>
-              <div class="col-sm-1 col-xs-1 reply-recording">
-                <i class="fa fa-microphone fa-2x" aria-hidden="true"></i>
-              </div>
-                -->
-                <div class="col-sm-11 col-xs-11 reply-main">
-                    <textarea class="form-control" rows="1" id="comment" :disabled="validated ? false : true"
-                        v-model="msgTextError" @keydown.enter.exact.prevent @keyup.enter.exact="sendMsg"
+                  -->
+                <div class="col-sm-1 col-xs-1 reply-recording"
+                    style="padding-right: 15px !important;padding-left: 15px !important;padding-top: 5px !important;">
+                    <input type="file" ref="inputFiles" @change="validateFile()" id="inputFiles" style="display: none">
+                    <i class="fa fa-paperclip fa-2x" aria-hidden="true" @click="$refs.inputFiles.click()"></i>
+
+                </div>
+                <div class="col-sm-10 col-xs-10 reply-main">
+                    <textarea class="form-control" rows="1" id="mensagem" :disabled="validatedTextarea ? false : true"
+                        @keydown.enter.exact.prevent @keyup.enter.exact="sendMsg"
                         @keydown.enter.shift.exact="newline"></textarea>
                 </div>
 
@@ -371,6 +395,7 @@ video {
 
 
 import api from '@/services/api.js'
+import apifile from '@/services/apifile.js'
 import { inject } from 'vue'
 
 
@@ -406,7 +431,7 @@ export default {
 
             telefoneMsg: '',
             procurar: '',
-            exibirLogs: true,
+            exibirLogs: false,
             SideConversations: [],
             ConversationChat: '',
             user: JSON.parse(localStorage.getItem('user')),
@@ -415,8 +440,10 @@ export default {
             selectSlug: null,
             messaging: null,
             messages: [],
-            validated: false,
+            validatedTextarea: false,
+            validatedChat: false,
             msgTextError: '',
+            file: null,
 
         };
     },
@@ -428,7 +455,7 @@ export default {
 
         this.slugs = this.user.clie_id;
         this.selectSlug = this.user.clie_id[0].cs_descricao;
-        console.log(this.user.clie_id);
+
         this.getConversations();
         var receiver = new BroadcastChannel('secretariavirtual');
         receiver.onmessage = function (event) {
@@ -495,6 +522,9 @@ export default {
         },
     },
     methods: {
+
+
+
         onChange(event) {
             this.selectSlug = event.target.value;
             this.getChat();
@@ -503,7 +533,7 @@ export default {
 
         },
         validateName() {
-            console.log('validateName');
+
             var name = document.getElementById("clientName").value;
 
             //if para verificar se contem nome e sobrenome com 3 carcter ou mias
@@ -537,6 +567,7 @@ export default {
 
         },
         async enviarMsg() {
+
             var numero = document.getElementById("telefoneMsg").value;
             this.msgTextError = '';
             var conversation = {
@@ -613,35 +644,52 @@ export default {
                 this.validated = true;
             } else {
                 if (Conversation.aten_id == -1) {
-                    this.validated = false;
+
+                    this.validatedChat = false;
+                    this.validatedTextarea = false;
                     this.msgText = 'Você tem certeza de que quer atender essa conversa? (Outras pessoas poderão atender esse contato somente depois que você finalizar a conversa)';
 
                 } else if (Conversation.hist_id != -1 && Conversation.sta_id_hist != 7) {
-                    this.validated = false;
+                    this.validatedChat = false;
+                    this.validatedTextarea = false;
                     this.msgText = 'Você deseja iniciar um novo atendimento com este contato?';
 
                 } else if (Conversation.aten_id != this.user.aten_id) {
-                    this.validated = false;
+                    this.validatedChat = false;
+                    this.validatedTextarea = false;
                     this.msgText = 'Esse contato já está em atendimento por outra pessoa!!';
                 } else {
-                    this.validated = true;
+
+                    this.validatedChat = true;
+                    this.validatedTextarea = true;
                     this.msgText = '';
                 }
-                console.log(Conversation.aten_id);
+
                 //this.msgText = 'nao e um grupo';
             }
 
-            console.log(Conversation.chatId.indexOf('@g.us') != -1);
+
+            if (this.messages.length > 0) {
+
+                document.getElementById("mensagem").value = '';
+                this.scrollToEnd();
+
+                if (this.$refs.inputFiles.files[0] != undefined) {
+                    document.getElementById('inputFiles').value = "";
+                    this.validatedTextarea = true;
+                    this.file = null;
+                }
+            }
             //await this.assumeAtendimento();
         },
         getConversations() {
-            console.log(this.selectSlug);
+
             api
                 .post("/conversas", { slug: this.selectSlug, aten_id: this.user.aten_id })
 
                 .then((res) => {
                     //ordena as conversas por data
-                    console.log(res.data);
+
                     res.data.sort(function (a, b) {
                         return new Date(b.created) - new Date(a.created);
                     });
@@ -746,7 +794,7 @@ export default {
             }
         },
         //Obtem o chat
-        getChat() {
+        async getChat() {
             //this.assumeAtendimento();
             api.post("/conversa", { slug: this.selectSlug, aten_id: this.ConversationChat.aten_id, chatId: this.ConversationChat.chatId })
                 .then((res) => {
@@ -798,6 +846,10 @@ export default {
                         type: 'error',
                     });
                 });
+            this.scrollToEnd();
+        },
+        onImgLoad() {
+            this.scrollToEnd();
         },
 
         save: function () {
@@ -921,13 +973,37 @@ export default {
 
 
         },
+        validateFile() {
+
+            this.validatedTextarea = false;
+            document.getElementById('mensagem').value = this.$refs.inputFiles.files[0].name;
+            this.sendMsg();
+        },
+
         //Envia mensagem
         async sendMsg() {
 
-            var msg = document.getElementById("comment").value;
 
-            this.readConversation();
+            var msg = document.getElementById("mensagem").value;
+
+
             if (msg.replace(/\s/g, '').length > 0) {
+                let formData = new FormData();
+
+
+                if (this.$refs.inputFiles.files[0] != undefined) {
+
+                    this.file = this.$refs.inputFiles.files[0];
+                    formData.append('chatId', this.ConversationChat.chatId);
+                    formData.append('telefone', this.ConversationChat.telefone);
+                    formData.append('slug', this.selectSlug);
+                    formData.append('aten_id', this.user.aten_id);
+                    formData.append('transferencia', 1);
+                    formData.append('nome_cliente', this.ConversationChat.nome_cliente);
+                    formData.append('mensagem', msg);
+                    formData.append('upload', this.$refs.inputFiles.files[0]);
+                    console.log(formData);
+                }
                 var sendmsg = {
                     "chatId": this.ConversationChat.chatId,
                     "telefone": this.ConversationChat.telefone,
@@ -938,13 +1014,13 @@ export default {
                     "mensagem": msg,
                 }
 
+                var connect = this.file ? apifile : api;
 
-                api.post("/send", sendmsg)
+
+                connect.post("/send", this.file ? formData : sendmsg)
                     .then((res) => {
-                        console.log('Enviando mensagem');
-                        console.log(res.data);
-                        if (res.data.error != 1) {
-                            document.getElementById("comment").value = '';
+                        if (this.exibirLogs) {
+                            console.log('Enviando mensagem');
                         }
                         //atualiza o chat
                         this.getChat();
@@ -960,6 +1036,13 @@ export default {
                             type: 'error',
                         });
                     });
+            }
+            document.getElementById("mensagem").value = '';
+            document.getElementById("mensagem").focus();
+            if (this.$refs.inputFiles.files[0] != undefined) {
+                document.getElementById('inputFiles').value = "";
+                this.validatedTextarea = true;
+                this.file = null;
             }
         },
         async assumeAtendimento() {

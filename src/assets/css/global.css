@@ -444,12 +444,12 @@ body {
 }
 
 .reply-recording {
-    padding: 5px !important;
+    /*padding: 5px !important;*/
 }
 
 .reply-recording i {
     text-align: center;
-    padding: 5px !important;
+    /*padding: 5px !important;*/
     color: #93918f;
     cursor: pointer;
 }
@@ -617,11 +617,11 @@ body {
     }
 
     .reply-recording {
-        padding: 5px 0 !important;
+        /*padding: 5px 0 !important;*/
     }
 
     .reply-recording i {
-        padding: 5px 0 !important;
+        /* padding: 5px 0 !important;*/
         font-size: 1.8em !important;
     }
 
